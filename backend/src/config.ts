@@ -7,7 +7,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
   DATABASE_URL: z.string().startsWith('file:', 'must be a SQLite file URL, e.g. file:./orders.db'),
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development')
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  LIST_DELAY_MAX_MS: z.coerce.number().int().min(0).default(0),
 })
 
 const parsed = envSchema.safeParse(process.env)
