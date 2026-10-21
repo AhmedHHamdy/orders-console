@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  admin
+  agent
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  delivered
+  cancelled
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  email        String  @unique
+  passwordHash String
+  role         Role
+  orders       Order[]
+
+  @@map("users")
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  customerName   String
+  customerEmail  String
+  status         OrderStatus
+  totalCents     Int
+  createdAt      DateTime    @default(now())
+  createdById    Int?
+  createdBy      User?       @relation(fields: [createdById], references: [id])
+  idempotencyKey String?
+  requestHash    String?
+  items          OrderItem[]
+
+  // R2: the database, not the UI, guarantees one order per (agent, key)
+  @@unique([createdById, idempotencyKey])
+  // R1: one index per sort order, with and without the status filter.
+  // id is the tie-breaker that makes the pagination cursor unique.
+  @@index([createdAt, id])
+  @@index([totalCents, id])
+  @@index([status, createdAt, id])
+  @@index([status, totalCents, id])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             Int    @id @default(autoincrement())
+  orderId        Int
+  order          Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        String
+  quantity       Int
+  unitPriceCents Int
+
+  @@index([orderId])
+  @@map("order_items")
+}
