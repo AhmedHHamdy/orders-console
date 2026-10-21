@@ -12,6 +12,10 @@ dist/
 # Database files 
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
+backend/src/generated/
+
 
 # Logs
 *.log
